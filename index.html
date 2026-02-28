@@ -797,6 +797,38 @@
         let fotoBase64 = ""; let fotoMetaBase64 = ""; let fotoPerfilBase64 = "";
         let idEditando = null; let idVendiendo = null; 
         let saldoRealGlobal = 0; // Pa usarlo en las metas
+        
+        // ===============================================
+        // LA PRENSA HIDRÁULICA (COMPRESOR DE FOTOS) 🗜️
+        // ===============================================
+        function comprimirImagen(file, callback) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    
+                    // Le bajamos los huevos a la resolución (800px max de ancho)
+                    const MAX_WIDTH = 800;
+                    let scaleSize = MAX_WIDTH / img.width;
+                    
+                    // si la foto de milagro ya es chiquita, no la hacemos más grande
+                    if (img.width < MAX_WIDTH) scaleSize = 1;
+                    
+                    canvas.width = img.width * scaleSize;
+                    canvas.height = img.height * scaleSize;
+
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                    // Lo hacemos JPEG bajándole la calidad al 60% (pa que pese nomas unos gramos)
+                    const dataUrl = canvas.toDataURL('image/jpeg', 0.6);
+                    callback(dataUrl);
+                }
+                img.src = e.target.result;
+            }
+            reader.readAsDataURL(file);
+        }
 
         window.onload = () => {
             console.log("OS VAULTIFYER DEFINITIVO CORRIENDO ALV 🗣️🔥");
@@ -839,15 +871,15 @@
             document.getElementById('modal-perfil').style.display = 'flex';
         }
 
+        // FOTO DEL PERFIL CON PRENSA HIDRÁULICA
         document.getElementById('inp-perfil-foto').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if(file) {
-                const reader = new FileReader();
-                reader.onload = function(evento) { fotoPerfilBase64 = evento.target.result; }
-                reader.readAsDataURL(file);
+                comprimirImagen(file, function(fotoComprimida) {
+                    fotoPerfilBase64 = fotoComprimida;
+                });
             }
         });
-
         document.getElementById('form-perfil').addEventListener('submit', function(e) {
             e.preventDefault();
             perfil.nombre = document.getElementById('inp-perfil-nombre').value;
@@ -870,16 +902,17 @@
             document.getElementById('modal-meta').style.display = 'flex';
         }
 
+        
+        // FOTO DE LAS METAS CON PRENSA HIDRÁULICA
         document.getElementById('inp-meta-foto').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if(file) {
-                const reader = new FileReader();
-                reader.onload = function(evento) {
-                    fotoMetaBase64 = evento.target.result;
+                document.getElementById('preview-meta').innerText = 'Exprimiendo foto... ⏳';
+                comprimirImagen(file, function(fotoComprimida) {
+                    fotoMetaBase64 = fotoComprimida;
                     document.getElementById('preview-meta').style.backgroundImage = `url(${fotoMetaBase64})`;
                     document.getElementById('preview-meta').innerText = '';
-                }
-                reader.readAsDataURL(file);
+                });
             }
         });
 
@@ -1077,11 +1110,19 @@
         }
         function cerrarModal() { document.getElementById('modal-agregar').style.display = 'none'; }
 
+        // FOTO DE LAS CHÁCHARAS CON PRENSA HIDRÁULICA
         document.getElementById('inp-foto').addEventListener('change', function(e) {
             const file = e.target.files[0];
-            if(file) { const reader = new FileReader(); reader.onload = function(ev) { fotoBase64 = ev.target.result; document.getElementById('preview-caja').style.backgroundImage = `url(${fotoBase64})`; document.getElementById('preview-caja').innerText = ''; }; reader.readAsDataURL(file); }
+            if(file) {
+                document.getElementById('preview-caja').innerText = 'Exprimiendo foto... ⏳';
+                comprimirImagen(file, function(fotoComprimida) {
+                    fotoBase64 = fotoComprimida;
+                    document.getElementById('preview-caja').style.backgroundImage = `url(${fotoBase64})`;
+                    document.getElementById('preview-caja').innerText = '';
+                });
+            }
         });
-
+        
         function agregarCampoDinamico(c = "", v = "") {
             const d = document.createElement('div'); d.className = 'fila-dinamica';
             d.innerHTML = `<input type="text" class="input-mamador din-clave" placeholder="Ej: Talla" value="${c}" style="flex:1;"><input type="text" class="input-mamador din-valor" placeholder="Ej: 27 MX" value="${v}" style="flex:2;"><button type="button" class="btn-secundario" onclick="this.parentElement.remove()" style="color:red; border-color: red;">X</button>`;
