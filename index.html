@@ -440,6 +440,70 @@
             white-space: pre-wrap;
             font-family: 'Space Mono', monospace;
         }
+        
+        /* ESTILOS PARA EL SISTEMA DE NITRO */
+.btn-nitro {
+    background-color: #ff4500; /* Naranja chido */
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 10px;
+    width: 100%;
+}
+.btn-nitro:hover { background-color: #e03e00; }
+
+.nitro-card {
+    background: #1e1e1e;
+    border-left: 4px solid #ff4500;
+    padding: 12px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.nitro-card.done {
+    border-left-color: #00cc66;
+    opacity: 0.7;
+}
+.nitro-info strong { color: #fff; font-size: 1.1em; }
+.nitro-info span { display: block; color: #aaa; font-size: 0.85em; margin-top: 4px; }
+
+.nitro-actions {
+    display: flex;
+    gap: 10px;
+}
+.btn-fblite {
+    background: #1877f2;
+    color: white;
+    border: none;
+    padding: 6px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    flex: 1;
+    font-weight: bold;
+}
+.btn-chamba {
+    background: #28a745;
+    color: white;
+    border: none;
+    padding: 6px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    flex: 1;
+    font-weight: bold;
+}
+.status-done {
+    color: #00cc66;
+    font-weight: bold;
+    text-align: center;
+    width: 100%;
+    padding: 5px;
+}
+
     </style>
 </head>
 <body>
@@ -781,6 +845,35 @@
             </form>
         </div>
     </div>
+    
+    <!-- MODAL: METERLE NITRO AL POST 🚀 -->
+<div id="modal-nitro" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+        <button class="close-btn" onclick="cerrarModal('modal-nitro')">X</button>
+        <h2>DARLE BOOST A TUS PUBLICACIONES</h2>
+        <p class="flavor-text">Aplica la técnica prohibida: Sube con la main, comenta y reacciona con la secundaria (el clon) pa' que el algoritmo se ponga cachondo y te de visibilidad.</p>
+        
+        <div class="form-group">
+            <label>¿En qué grupo publicaste? 🏘️</label>
+            <input type="text" id="nitro-grupo" placeholder="Ej. Tepito Ventas, Tianguis del Sol...">
+        </div>
+        
+        <div class="form-group">
+            <label>Link a la publicación 🔗</label>
+            <input type="url" id="nitro-link" placeholder="Pega el enlace de Facebook aquí we">
+        </div>
+        
+        <button class="btn-guardar" onclick="registrarNitro()">➕ REGISTRAR POST</button>
+        
+        <hr style="margin: 20px 0; border-color: #333;">
+        
+        <h3>TUS POSTS PA' FARMEAR 👇</h3>
+        <div id="lista-nitros" class="nitro-list">
+            <!-- Aquí se inyectan los posts por JS -->
+        </div>
+    </div>
+</div>
+
 
    <!-- EL JAVASCRIPT FINANCIERO ALV -->
     <script>
@@ -1088,6 +1181,11 @@
                                 <button class="btn-accion btn-sell" title="Vender" onclick="abrirVender(${item.id})" style="flex: 1;">💲</button>
                                 <button class="btn-accion btn-edit" title="Editar" onclick="editarItem(${item.id})" style="flex: 1;">✏️</button>
                                 <button class="btn-accion btn-delete" title="Borrar" onclick="borrarItem(${item.id})" style="flex: 1;">🗑️</button>
+                                <!-- Agrega este botón en la tarjeta de cada tenis -->
+<button class="btn-accion btn-nitro" onclick="abrirModalNitro( ${item.id} )">
+    🗣️ FARMEAR VISIBILIDAD
+</button>                                
+
                             </div>
                         </div>
                     </div>`;
@@ -1337,6 +1435,118 @@
                 renderizarListaBitacora();
             }
         }
+        // Variable global para saber a qué tenis le estamos metiendo nitro
+let itemNitroActual = null;
+
+function abrirModalNitro(idItem) {
+    itemNitroActual = idItem;
+    // Muestra el modal (ajusta esto si tu función de abrir modales es distinta)
+    document.getElementById('modal-nitro').style.display = 'flex'; 
+    renderizarNitros();
+}
+
+function registrarNitro() {
+    const grupo = document.getElementById('nitro-grupo').value;
+    const link = document.getElementById('nitro-link').value;
+
+    if(!grupo || !link) {
+        alert("Llena los datos padrino, no te hagas güey.");
+        return;
+    }
+
+    // Encuentra el ítem en tu array principal (asumiendo que se llama 'inventario')
+    // Cambia 'inventario' por el nombre de tu variable global donde guardas las chácharas
+    const item = inventario.find(i => i.id === itemNitroActual);
+    
+    // Si no tiene el historial de nitros, se lo creamos
+    if(!item.nitros) item.nitros = [];
+
+    item.nitros.push({
+        id: Date.now(),
+        grupo: grupo,
+        link: link,
+        fecha: new Date().toLocaleString(),
+        chambaHecha: false
+    });
+
+    // Limpiamos los inputs
+    document.getElementById('nitro-grupo').value = '';
+    document.getElementById('nitro-link').value = '';
+
+    // AQUÍ LLAMA A TU FUNCIÓN DE GUARDAR EN LOCALSTORAGE
+    // ej: guardarDatos();
+
+    renderizarNitros();
+}
+
+function renderizarNitros() {
+    const item = inventario.find(i => i.id === itemNitroActual);
+    const contenedor = document.getElementById('lista-nitros');
+    contenedor.innerHTML = '';
+
+    if(!item || !item.nitros || item.nitros.length === 0) {
+        contenedor.innerHTML = '<p style="text-align:center; color:#888; font-style:italic;">No has registrado ni madres aún. Sube el post y pon el link arriba.</p>';
+        return;
+    }
+
+    // Ordenar para que los pendientes salgan arriba
+    const nitrosOrdenados = item.nitros.sort((a, b) => a.chambaHecha - b.chambaHecha);
+
+    nitrosOrdenados.forEach(nitro => {
+        const div = document.createElement('div');
+        div.className = `nitro-card ${nitro.chambaHecha ? 'done' : ''}`;
+        div.innerHTML = `
+            <div class="nitro-info">
+                <strong>🏘️ ${nitro.grupo}</strong>
+                <span>🕒 Subido el: ${nitro.fecha}</span>
+            </div>
+            <div class="nitro-actions">
+                ${!nitro.chambaHecha ? `
+                    <button class="btn-fblite" onclick="abrirFBLite('${nitro.link}')">📱 Abrir en FB Lite</button>
+                    <button class="btn-chamba" onclick="marcarChambaHecha(${nitro.id})">✅ Chamba Hecha</button>
+                ` : `
+                    <span class="status-done">🔥 Algoritmo domado 🐕</span>
+                `}
+            </div>
+        `;
+        contenedor.appendChild(div);
+    });
+}
+
+function abrirFBLite(url) {
+    // Detectamos si es Android para forzar el intent de FB Lite
+    const isAndroid = /android/i.test(navigator.userAgent || navigator.vendor || window.opera);
+
+    if(isAndroid) {
+        // Le quitamos el https:// para armar el intent
+        const urlLimpia = url.replace(/^https?:\/\//, '');
+        // Este intent fuerza a abrir la app com.facebook.lite
+        const intentUrl = `intent://${urlLimpia}#Intent;package=com.facebook.lite;scheme=https;end`;
+        
+        window.location.href = intentUrl;
+
+        // Por si no tiene FB Lite instalado, le damos 1.5 seg y abrimos en web
+        setTimeout(() => {
+            window.open(url, '_blank');
+        }, 1500);
+    } else {
+        // Si es iPhone o PC, lo abrimos normal
+        window.open(url, '_blank');
+    }
+}
+
+function marcarChambaHecha(idNitro) {
+    const item = inventario.find(i => i.id === itemNitroActual);
+    const nitro = item.nitros.find(n => n.id === idNitro);
+    
+    if(nitro) {
+        nitro.chambaHecha = true;
+        // AQUÍ LLAMA A TU FUNCIÓN DE GUARDAR EN LOCALSTORAGE
+        // ej: guardarDatos();
+        renderizarNitros();
+    }
+}
+
         // === FIN DE TODO EL CÓDIGO JS ALV ===
     </script>
     
