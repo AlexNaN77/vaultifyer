@@ -1482,20 +1482,10 @@
             }
         }
 
-        // MAGIA NEGRA PA FORZAR EL FACEBOOK LITE 📱🔥
+      // MAGIA NEGRA DESACTIVADA: A LA CHINGADA, UN LINK NORMAL Y YA 📱🔥
         function abrirFBLite(urlNormal) {
-            // esto le da la orden a tu celular android de despertar la app lite
-            // el nombre tecnico de la app es com.facebook.lite
-            const intentUrl = "intent://browser/fallback?url=" + encodeURIComponent(urlNormal) + "#Intent;package=com.facebook.lite;scheme=https;end;";
-            
-            // le mandamos el putazo al celular
-            window.open(intentUrl, '_blank');
-            
-            // y por si andas en PC o iPhone y no jala el intent...
-            // le ponemos un paracaidas pa que te abra el link normal despues de 1 segundo
-            setTimeout(function() {
-                window.open(urlNormal, '_blank');
-            }, 1000);
+            // nomas abrimos el link y que tu celular decida con que app abrirlo alv
+            window.open(urlNormal, '_blank');
         }
             
         // === FIN DE TODO EL CÓDIGO JS ALV ===
